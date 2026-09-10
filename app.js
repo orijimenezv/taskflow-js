@@ -54,6 +54,13 @@ const enfocarAccion = (id, accion) => {
   const tarjeta = [...elementos.lista.children].find(n => n.dataset.id === id);
   (tarjeta?.querySelector(`[data-accion="${accion}"]`) || elementos.filtro).focus();
 };
+let eliminarId = null;
+$('#cancelarEliminar').addEventListener('click', () => $('#eliminarDialogo').close());
+$('#eliminarDialogo').addEventListener('close', () => { enfocarAccion(eliminarId, 'eliminar'); eliminarId = null; });
+$('#confirmarEliminar').addEventListener('click', () => {
+  try { gestor.eliminar(eliminarId); renderizar(); $('#eliminarDialogo').close(); mostrarNotificacion('Tarea eliminada.'); }
+  catch (error) { $('#errorEliminar').textContent = error.message; }
+});
 let edicionId = null;
 const dialogo = $('#editarDialogo');
 const formEditar = $('#formEditar');
@@ -97,7 +104,9 @@ elementos.lista.addEventListener('click', ({ target }) => {
     fechaEditar.min = fechaLocal(); $('#contadorEdicion').textContent = `${tarea.descripcion.length} de 80`; $('#errorEdicion').textContent = '';
     dialogo.showModal(); descripcionEditar.focus(); return;
   }
-  if (accion === 'eliminar' && !window.confirm('¿Quieres eliminar esta tarea?')) return;
+  if (accion === 'eliminar') {
+    eliminarId = id; $('#errorEliminar').textContent = ''; $('#eliminarDialogo').showModal(); $('#cancelarEliminar').focus(); return;
+  }
   try {
     if (accion === 'estado') gestor.cambiarEstado(id);
     if (accion === 'eliminar') gestor.eliminar(id);

@@ -58,6 +58,15 @@
     <div id="notificacion" class="notificacion" role="status" aria-live="polite"></div>
   </main>
 
+  <dialog id="eliminarDialogo" aria-labelledby="tituloEliminar">
+    <h2 id="tituloEliminar">¿Eliminar esta tarea?</h2>
+    <p>Esta acción quitará la tarea de este navegador.</p>
+    <p id="errorEliminar" class="error" role="alert"></p>
+    <div class="botones">
+      <button id="cancelarEliminar" type="button" class="secundario" autofocus>Cancelar</button>
+      <button id="confirmarEliminar" type="button" class="peligro">Eliminar tarea</button>
+    </div>
+  </dialog>
   <dialog id="editarDialogo" aria-labelledby="tituloEdicion">
     <h2 id="tituloEdicion">Editar tarea</h2>
     <form id="formEditar">

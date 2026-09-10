@@ -1,361 +1,122 @@
-// =============================================================
-// TaskFlow - Evaluación Módulo 4
-// Programación avanzada en JavaScript
-// Contenidos: POO, ES6+, DOM, eventos, asincronía, API y localStorage
-// =============================================================
-
-// 1. ORIENTACIÓN A OBJETOS
-class Tarea {
-  constructor({
-    id = `${Date.now()}-${Math.random().toString(16).slice(2)}`,
-    descripcion,
-    estado = 'pendiente',
-    fechaCreacion = new Date().toISOString(),
-    fechaLimite
-  }) {
-    this.id = id;
-    this.descripcion = descripcion;
-    this.estado = estado;
-    this.fechaCreacion = fechaCreacion;
-    this.fechaLimite = fechaLimite;
-  }
-
-  cambiarEstado() {
-    this.estado = this.estado === 'pendiente' ? 'completada' : 'pendiente';
-  }
-
-  // Método solicitado para eliminar una tarea.
-  // Devuelve su id para que GestorTareas pueda quitarla de la colección.
-  eliminar() {
-    return this.id;
-  }
-}
-
-class GestorTareas {
-  constructor(clave = 'taskflow_tareas') {
-    this.clave = clave;
-    this.tareas = this.recuperar();
-  }
-
-  agregar(datos) {
-    const tarea = new Tarea(datos);
-    this.tareas = [...this.tareas, tarea]; // spread ES6
-    this.guardar();
-    return tarea;
-  }
-
-  eliminar(id) {
-    const tarea = this.tareas.find(item => item.id === id);
-    if (!tarea) return;
-
-    const idAEliminar = tarea.eliminar();
-    this.tareas = this.tareas.filter(item => item.id !== idAEliminar);
-    this.guardar();
-  }
-
-  editar(id, cambios = {}) {
-    const tarea = this.tareas.find(item => item.id === id);
-    if (!tarea) return;
-
-    const { descripcion, fechaLimite } = cambios; // destructuring ES6
-    if (descripcion?.trim()) tarea.descripcion = descripcion.trim();
-    if (fechaLimite) tarea.fechaLimite = fechaLimite;
-    this.guardar();
-  }
-
-  cambiarEstado(id) {
-    const tarea = this.tareas.find(item => item.id === id);
-    if (tarea) tarea.cambiarEstado();
-    this.guardar();
-  }
-
-  guardar() {
-    localStorage.setItem(this.clave, JSON.stringify(this.tareas));
-  }
-
-  recuperar() {
-    try {
-      const guardadas = localStorage.getItem(this.clave);
-      if (!guardadas) return [];
-      return JSON.parse(guardadas).map(datos => new Tarea(datos));
-    } catch (error) {
-      console.error('No fue posible recuperar las tareas', error);
-      return [];
-    }
-  }
-}
-
-// 2. ES6+ Y MANIPULACIÓN DEL DOM
-const gestor = new GestorTareas();
-
-// Tareas de ejemplo para que la aplicación muestre contenido desde el inicio.
-// Solo se agregan cuando no existen tareas guardadas previamente en localStorage.
-if (gestor.tareas.length === 0) {
-  const crearFechaEjemplo = dias => {
-    const fecha = new Date();
-    fecha.setDate(fecha.getDate() + dias);
-    return fecha.toISOString().slice(0, 10);
-  };
-
-  gestor.agregar({
-    descripcion: 'Prueba módulo 4',
-    fechaLimite: crearFechaEjemplo(7)
-  });
-
-  gestor.agregar({
-    descripcion: 'Reunión de apoderados',
-    fechaLimite: crearFechaEjemplo(14)
-  });
-
-  gestor.agregar({
-    descripcion: 'Entregar proyecto módulo 4',
-    fechaLimite: crearFechaEjemplo(21),
-    estado: 'completada'
-  });
-}
-
+'use strict';
 const $ = selector => document.querySelector(selector);
-
 const elementos = {
-  form: $('#formTarea'),
-  descripcion: $('#descripcion'),
-  fecha: $('#fechaLimite'),
-  lista: $('#listaTareas'),
-  filtro: $('#filtro'),
-  guardar: $('#guardarTarea'),
-  ejemplos: $('#cargarEjemplos'),
-  estadoApi: $('#estadoApi'),
-  notificacion: $('#notificacion'),
-  contador: $('#contadorTexto'),
-  total: $('#totalTareas'),
-  pendientes: $('#tareasPendientes'),
-  completadas: $('#tareasCompletadas')
+  form: $('#formTarea'), descripcion: $('#descripcion'), fecha: $('#fechaLimite'), lista: $('#listaTareas'), filtro: $('#filtro'), guardar: $('#guardarTarea'), ejemplos: $('#cargarEjemplos'), estadoApi: $('#estadoApi'), notificacion: $('#notificacion'), contador: $('#contadorTexto'), total: $('#totalTareas'), pendientes: $('#tareasPendientes'), completadas: $('#tareasCompletadas')
 };
-
-const esperar = milisegundos => new Promise(resolve => setTimeout(resolve, milisegundos));
-
-const fechaISO = fecha => fecha.toISOString().slice(0, 10);
-const formatearFecha = fecha => new Intl.DateTimeFormat('es-CL').format(new Date(`${fecha}T00:00:00`));
-
-const escaparHTML = texto => texto.replace(/[&<>'"]/g, caracter => ({
-  '&': '&amp;',
-  '<': '&lt;',
-  '>': '&gt;',
-  "'": '&#39;',
-  '"': '&quot;'
-}[caracter]));
-
-const tiempoRestante = fecha => {
-  const limite = new Date(`${fecha}T23:59:59`);
-  const diferencia = limite - new Date();
-
-  if (diferencia <= 0) return 'plazo vencido';
-
-  const segundosTotales = Math.floor(diferencia / 1000);
-  const dias = Math.floor(segundosTotales / 86400);
-  const horas = Math.floor((segundosTotales % 86400) / 3600);
-  const minutos = Math.floor((segundosTotales % 3600) / 60);
-  const segundos = segundosTotales % 60;
-
-  return `${dias}d ${horas}h ${minutos}m ${segundos}s`;
-};
-
+// El acceso al almacenamiento también puede fallar por permisos del navegador.
+const almacenamiento = { getItem: clave => window.localStorage.getItem(clave), setItem: (clave, valor) => window.localStorage.setItem(clave, valor) };
+const gestor = new GestorTareas(almacenamiento);
+let temporizadorNotificacion;
 const mostrarNotificacion = mensaje => {
+  clearTimeout(temporizadorNotificacion);
   elementos.notificacion.textContent = mensaje;
   elementos.notificacion.classList.add('visible');
-  setTimeout(() => elementos.notificacion.classList.remove('visible'), 2500);
+  temporizadorNotificacion = setTimeout(() => elementos.notificacion.classList.remove('visible'), 5000);
 };
-
-// Requisito de asincronía: la notificación aparece después de 2 segundos.
-const notificarDespuesDeDosSegundos = mensaje => {
-  setTimeout(() => mostrarNotificacion(mensaje), 2000);
+const tiempoRestante = fecha => {
+  const segundos = Math.max(0, Math.floor((new Date(`${fecha}T23:59:59`) - new Date()) / 1000));
+  if (!segundos) return 'Plazo vencido';
+  return `Tiempo restante: ${Math.floor(segundos / 86400)}d ${Math.floor(segundos % 86400 / 3600)}h ${Math.floor(segundos % 3600 / 60)}m ${segundos % 60}s`;
 };
-
+const actualizarTiempos = () => {
+  elementos.lista.querySelectorAll('[data-fecha]').forEach(nodo => { nodo.textContent = tiempoRestante(nodo.dataset.fecha); });
+  elementos.fecha.min = fechaLocal();
+};
 const crearTarjeta = tarea => {
-  const textoLimite = tarea.estado === 'completada'
-    ? 'tarea completada'
-    : `tiempo restante ${tiempoRestante(tarea.fechaLimite)}`;
-
   const articulo = document.createElement('article');
   articulo.className = `tarea ${tarea.estado}`;
   articulo.dataset.id = tarea.id;
-  articulo.innerHTML = `
-    <div>
-      <h3>${escaparHTML(tarea.descripcion)}</h3>
-      <p>creada ${new Date(tarea.fechaCreacion).toLocaleDateString('es-CL')} · fecha límite ${formatearFecha(tarea.fechaLimite)}</p>
-      <p>${textoLimite}</p>
-    </div>
-    <div class="botones">
-      <button class="completar" data-accion="estado" type="button">${tarea.estado === 'pendiente' ? 'completar' : 'reabrir'}</button>
-      <button class="secundario" data-accion="editar" type="button">editar</button>
-      <button class="peligro" data-accion="eliminar" type="button">eliminar</button>
-    </div>`;
-
+  articulo.innerHTML = '<div><h3></h3><p class="fechas"></p><p class="tiempo"></p></div><div class="botones"></div>';
+  articulo.querySelector('h3').textContent = tarea.descripcion;
+  const formato = new Intl.DateTimeFormat('es-CL');
+  articulo.querySelector('.fechas').textContent = `Creada ${formato.format(new Date(tarea.fechaCreacion))} · fecha límite ${formato.format(new Date(`${tarea.fechaLimite}T00:00:00`))}`;
+  const tiempo = articulo.querySelector('.tiempo');
+  if (tarea.estado === 'completada') tiempo.textContent = 'Tarea completada';
+  else { tiempo.dataset.fecha = tarea.fechaLimite; tiempo.textContent = tiempoRestante(tarea.fechaLimite); }
+  [['estado', tarea.estado === 'pendiente' ? 'Completar' : 'Reabrir', 'completar'], ['editar', 'Editar', 'secundario'], ['eliminar', 'Eliminar', 'peligro']].forEach(([accion, texto, clase]) => {
+    const boton = document.createElement('button');
+    boton.type = 'button'; boton.dataset.accion = accion; boton.className = clase;
+    boton.textContent = texto; boton.setAttribute('aria-label', `${texto}: ${tarea.descripcion}`);
+    articulo.querySelector('.botones').append(boton);
+  });
   return articulo;
 };
-
 const renderizar = () => {
-  const filtro = elementos.filtro.value;
-  const tareasFiltradas = gestor.tareas.filter(tarea => filtro === 'todas' || tarea.estado === filtro);
-
-  elementos.lista.replaceChildren(...tareasFiltradas.map(crearTarjeta));
-
-  if (!tareasFiltradas.length) {
-    elementos.lista.innerHTML = '<p class="vacio">no hay tareas en esta sección</p>';
-  }
-
-  const completadas = gestor.tareas.filter(({ estado }) => estado === 'completada').length;
+  const tareas = gestor.filtrar(elementos.filtro.value);
+  elementos.lista.replaceChildren(...tareas.map(crearTarjeta));
+  if (!tareas.length) elementos.lista.innerHTML = '<p class="vacio">No hay tareas en esta sección.</p>';
+  const completadas = gestor.filtrar('completada').length;
   elementos.total.textContent = gestor.tareas.length;
   elementos.completadas.textContent = completadas;
   elementos.pendientes.textContent = gestor.tareas.length - completadas;
 };
-
-// 3. CONSUMO DE API
-// Función que guarda/sincroniza una tarea en una API externa.
-const guardarTareaEnApi = async tarea => {
-  const respuesta = await fetch('https://jsonplaceholder.typicode.com/todos', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      title: tarea.descripcion,
-      completed: tarea.estado === 'completada',
-      userId: 1
-    })
-  });
-
-  if (!respuesta.ok) throw new Error('Error al guardar la tarea en la API');
-  return respuesta.json();
+const enfocarAccion = (id, accion) => {
+  const tarjeta = [...elementos.lista.children].find(n => n.dataset.id === id);
+  (tarjeta?.querySelector(`[data-accion="${accion}"]`) || elementos.filtro).focus();
 };
-
-// Función que recupera tareas desde una API externa.
-const recuperarTareasDeApi = async () => {
-  const respuesta = await fetch('https://jsonplaceholder.typicode.com/todos?_limit=3');
-  if (!respuesta.ok) throw new Error('Error al recuperar tareas desde la API');
-  return respuesta.json();
-};
-
-const cargarEjemplos = async () => {
-  elementos.ejemplos.disabled = true;
-  elementos.estadoApi.textContent = 'cargando tareas desde la API';
-
+let edicionId = null;
+const dialogo = $('#editarDialogo');
+const formEditar = $('#formEditar');
+const descripcionEditar = $('#editarDescripcion');
+const fechaEditar = $('#editarFecha');
+const cerrarEdicion = () => { dialogo.close(); };
+dialogo.addEventListener('close', () => { enfocarAccion(edicionId, 'editar'); edicionId = null; });
+$('#cancelarEdicion').addEventListener('click', cerrarEdicion);
+descripcionEditar.addEventListener('input', () => { $('#contadorEdicion').textContent = `${descripcionEditar.value.length} de 80`; });
+formEditar.addEventListener('submit', evento => {
+  evento.preventDefault();
   try {
-    const datos = await recuperarTareasDeApi();
-    const fecha = new Date();
-    fecha.setDate(fecha.getDate() + 7);
-
-    datos.forEach(({ title, completed }) => {
-      gestor.agregar({
-        descripcion: title,
-        estado: completed ? 'completada' : 'pendiente',
-        fechaLimite: fechaISO(fecha)
-      });
-    });
-
-    elementos.estadoApi.textContent = 'tareas recuperadas correctamente desde la API';
-    mostrarNotificacion('tareas de ejemplo agregadas');
-    renderizar();
-  } catch (error) {
-    console.error(error);
-    elementos.estadoApi.textContent = 'no se pudo conectar con la API';
-  } finally {
-    elementos.ejemplos.disabled = false;
-  }
-};
-
-// 4. EVENTOS DEL DOM
-// submit + asincronía con retardo al agregar una tarea
+    gestor.editar(edicionId, { descripcion: descripcionEditar.value, fechaLimite: fechaEditar.value });
+    renderizar(); cerrarEdicion(); mostrarNotificacion('Tarea editada y guardada en este navegador.');
+  } catch (error) { $('#errorEdicion').textContent = error.message; }
+});
 elementos.form.addEventListener('submit', async evento => {
   evento.preventDefault();
-
-  const descripcion = elementos.descripcion.value.trim();
-  const fechaLimite = elementos.fecha.value;
-  if (!descripcion || !fechaLimite) return;
-
   elementos.guardar.disabled = true;
-  elementos.guardar.textContent = 'agregando...';
-
-  // Simula un pequeño retardo antes de agregar la tarea.
-  await esperar(800);
-
-  const tarea = gestor.agregar({ descripcion, fechaLimite });
-  renderizar();
-  elementos.form.reset();
-  elementos.contador.textContent = '0 de 80';
-  elementos.guardar.disabled = false;
-  elementos.guardar.textContent = 'agregar tarea';
-
-  // La notificación se muestra 2 segundos después.
-  notificarDespuesDeDosSegundos('tarea agregada correctamente');
-
+  let tarea;
   try {
-    await guardarTareaEnApi(tarea);
-    elementos.estadoApi.textContent = 'última tarea sincronizada con la API';
-  } catch (error) {
-    console.error(error);
-    elementos.estadoApi.textContent = 'tarea guardada en localStorage sin sincronización externa';
-  }
+    tarea = gestor.agregar({ descripcion: elementos.descripcion.value, fechaLimite: elementos.fecha.value });
+    renderizar(); elementos.form.reset(); elementos.contador.textContent = '0 de 80';
+    $('#errorFormulario').textContent = '';
+    mostrarNotificacion('Tarea guardada en este navegador.');
+  } catch (error) { $('#errorFormulario').textContent = error.message; }
+  finally { elementos.guardar.disabled = false; }
+  if (!tarea) return;
+  elementos.estadoApi.textContent = 'Probando POST en la API de demostración…';
+  try { await guardarTareaEnApi(tarea); elementos.estadoApi.textContent = 'POST simulado correctamente. La tarea real está guardada solo en este navegador.'; }
+  catch { elementos.estadoApi.textContent = 'API no disponible. La tarea sigue guardada en este navegador.'; }
 });
-
-// click: completar/reabrir, editar y eliminar
 elementos.lista.addEventListener('click', ({ target }) => {
   const boton = target.closest('button');
   if (!boton) return;
-
-  const tarjeta = boton.closest('.tarea');
-  const id = tarjeta?.dataset.id;
-  if (!id) return;
-
-  if (boton.dataset.accion === 'estado') {
-    gestor.cambiarEstado(id);
+  const id = boton.closest('.tarea').dataset.id;
+  const accion = boton.dataset.accion;
+  if (accion === 'editar') {
+    const tarea = gestor.tareas.find(t => t.id === id);
+    edicionId = id; descripcionEditar.value = tarea.descripcion; fechaEditar.value = tarea.fechaLimite;
+    fechaEditar.min = fechaLocal(); $('#contadorEdicion').textContent = `${tarea.descripcion.length} de 80`; $('#errorEdicion').textContent = '';
+    dialogo.showModal(); descripcionEditar.focus(); return;
   }
-
-  if (boton.dataset.accion === 'eliminar') {
-    const confirmar = window.confirm('¿quieres eliminar esta tarea?');
-    if (confirmar) gestor.eliminar(id);
-  }
-
-  if (boton.dataset.accion === 'editar') {
-    const tarea = gestor.tareas.find(item => item.id === id);
-    if (!tarea) return;
-
-    const nuevaDescripcion = window.prompt('edita la descripción', tarea.descripcion);
-    if (nuevaDescripcion === null) return;
-
-    const nuevaFecha = window.prompt('edita la fecha límite (AAAA-MM-DD)', tarea.fechaLimite);
-    gestor.editar(id, {
-      descripcion: nuevaDescripcion,
-      fechaLimite: nuevaFecha || tarea.fechaLimite
-    });
-  }
-
-  renderizar();
+  if (accion === 'eliminar' && !window.confirm('¿Quieres eliminar esta tarea?')) return;
+  try {
+    if (accion === 'estado') gestor.cambiarEstado(id);
+    if (accion === 'eliminar') gestor.eliminar(id);
+    renderizar(); enfocarAccion(id, accion); mostrarNotificacion('Cambio guardado en este navegador.');
+  } catch (error) { mostrarNotificacion(error.message); }
 });
-
-// mouseover solicitado en la consigna
-elementos.lista.addEventListener('mouseover', ({ target }) => {
-  target.closest('.tarea')?.classList.add('destacada');
-});
-
-elementos.lista.addEventListener('mouseout', ({ target }) => {
-  target.closest('.tarea')?.classList.remove('destacada');
-});
-
-// keyup solicitado en la consigna
-elementos.descripcion.addEventListener('keyup', () => {
-  elementos.contador.textContent = `${elementos.descripcion.value.length} de 80`;
-});
-
+elementos.descripcion.addEventListener('input', () => { elementos.contador.textContent = `${elementos.descripcion.value.length} de 80`; });
 elementos.filtro.addEventListener('change', renderizar);
-elementos.ejemplos.addEventListener('click', cargarEjemplos);
-
-// Fecha mínima: hoy
-const hoy = new Date();
-elementos.fecha.min = fechaISO(hoy);
-
-// Requisito setInterval: contador regresivo actualizado cada segundo.
-let intervaloContador = setInterval(renderizar, 1000);
-
-// Evita mantener el intervalo si la página se cierra.
-window.addEventListener('beforeunload', () => clearInterval(intervaloContador));
-
-renderizar();
+elementos.ejemplos.addEventListener('click', async () => {
+  elementos.ejemplos.disabled = true;
+  elementos.estadoApi.textContent = 'Cargando ejemplos de JSONPlaceholder…';
+  try {
+    const cantidad = gestor.importar(await recuperarTareasDeApi());
+    renderizar(); elementos.estadoApi.textContent = cantidad ? `${cantidad} tareas de demostración importadas y guardadas localmente.` : 'Estos ejemplos ya están en tu lista. No se agregaron duplicados.';
+  } catch (error) { elementos.estadoApi.textContent = `No se pudo importar. ${error.message}`; }
+  finally { elementos.ejemplos.disabled = false; }
+});
+try { gestor.iniciarEjemplos(); } catch (error) { gestor.aviso = error.message; }
+if (gestor.aviso) $('#avisoAlmacenamiento').textContent = gestor.aviso;
+renderizar(); actualizarTiempos();
+const intervaloContador = setInterval(actualizarTiempos, 1000);
+window.addEventListener('beforeunload', () => { clearInterval(intervaloContador); clearTimeout(temporizadorNotificacion); });

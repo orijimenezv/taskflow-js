@@ -1,0 +1,10 @@
+CAPTURAS SUGERIDAS PARA LA ENTREGA
+
+1. Vista inicial de TaskFlow con el formulario y la lista de tareas.
+2. Una tarea recién creada mostrando descripción, fecha límite y contador regresivo.
+3. Varias tareas con una completada y el resumen de total/pendientes/completadas.
+4. La aplicación después de presionar "cargar desde API", mostrando el mensaje de conexión correcta.
+5. Visual Studio Code mostrando la clase Tarea y la clase GestorTareas en app.js.
+6. Visual Studio Code mostrando fetch(), async/await y try/catch.
+
+Con 4 capturas claras normalmente es suficiente; las 5 y 6 sirven como respaldo técnico.

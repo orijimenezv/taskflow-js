@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TaskFlow - Gestión de tareas</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="app">
+    <header class="encabezado">
+      <div>
+        <p class="etiqueta">gestor de tareas</p>
+        <h1>TaskFlow</h1>
+        <p>organiza tus pendientes de forma simple</p>
+      </div>
+      <button id="cargarEjemplos" class="secundario" type="button">cargar desde API</button>
+    </header>
+
+    <section class="panel">
+      <h2>nueva tarea</h2>
+      <form id="formTarea">
+        <label for="descripcion">descripción</label>
+        <input id="descripcion" type="text" maxlength="80" required placeholder="ejemplo terminar informe">
+
+        <label for="fechaLimite">fecha límite</label>
+        <input id="fechaLimite" type="date" required>
+
+        <div class="acciones-formulario">
+          <button id="guardarTarea" type="submit">agregar tarea</button>
+          <span id="contadorTexto">0 de 80</span>
+        </div>
+      </form>
+    </section>
+
+    <section class="resumen" aria-label="resumen de tareas">
+      <div><strong id="totalTareas">0</strong><span>total</span></div>
+      <div><strong id="tareasPendientes">0</strong><span>pendientes</span></div>
+      <div><strong id="tareasCompletadas">0</strong><span>completadas</span></div>
+    </section>
+
+    <section class="panel">
+      <div class="barra-lista">
+        <h2>mis tareas</h2>
+        <select id="filtro" aria-label="filtrar tareas">
+          <option value="todas">todas</option>
+          <option value="pendiente">pendientes</option>
+          <option value="completada">completadas</option>
+        </select>
+      </div>
+      <p id="estadoApi" class="estado" role="status"></p>
+      <div id="listaTareas" class="lista"></div>
+    </section>
+
+    <div id="notificacion" class="notificacion" role="status" aria-live="polite"></div>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

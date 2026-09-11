@@ -62,7 +62,7 @@ La confirmación original mediante window.confirm bloqueó el control del navega
 - La prueba móvil utilizó emulación de viewport, no un teléfono físico.
 - No se ejecutó una auditoría con lector de pantalla, una matriz Firefox/Safari ni pruebas exhaustivas de contraste.
 - El escenario sin API comparte el almacenamiento del origen local; usar datos de prueba. No ejecutarlo simultáneamente con ediciones en otras pestañas.
-- Durante la revisión local original no se generaron capturas permanentes ni se publicó la demo. La publicación y las comprobaciones posteriores de la autora se registran en la sección de GitHub Pages. Las capturas siguen pendientes.
+- Durante la revisión local original no se generaron capturas permanentes ni se publicó la demo. La publicación y las comprobaciones posteriores de la autora se registran en la sección de GitHub Pages. Posteriormente, la autora aportó las capturas inicio.png, edicion.png y api.png, incorporadas en capturas/. La imagen de API muestra el mensaje de POST simulado; no documenta una importación GET.
 - El PDF académico no fue regenerado; conserva el documento original.
 
 ## Repetición manual del fallo de API

@@ -144,3 +144,25 @@ button:disabled { opacity: .6; cursor: wait; }
   .tarea { grid-template-columns: 1fr; }
   .botones { flex-wrap: wrap; }
 }
+/* Ajustes de accesibilidad conservando la paleta y distribución originales. */
+:focus-visible { outline: 3px solid #2457d6; outline-offset: 3px; }
+.tarea { grid-template-columns: minmax(0, 1fr) auto; }
+.tarea > div { min-width: 0; }
+.tarea h3, .tarea p { overflow-wrap: anywhere; }
+.tarea.completada { opacity: 1; background: #f3faf6; }
+.completar { color: #146c43; }
+.error, #avisoAlmacenamiento { color: #a32632; }
+.error:empty, #avisoAlmacenamiento:empty { display: none; }
+dialog { width: min(480px, calc(100% - 32px)); max-height: calc(100% - 32px); overflow: auto; padding: 24px; border: 1px solid var(--borde); border-radius: 16px; color: var(--texto); }
+dialog::backdrop { background: rgb(20 30 50 / 45%); }
+dialog .botones { flex-wrap: wrap; }
+.notificacion { max-width: min(320px, calc(100vw - 32px)); right: 16px; bottom: 16px; }
+@media (max-width: 620px) {
+  .tarea { grid-template-columns: minmax(0, 1fr); }
+  .barra-lista { flex-wrap: wrap; }
+  .panel, .resumen { padding: 18px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; }
+  .tarea:hover { transform: none; }
+}

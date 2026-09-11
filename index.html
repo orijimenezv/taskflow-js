@@ -17,15 +17,17 @@
       <button id="cargarEjemplos" class="secundario" type="button">cargar desde API</button>
     </header>
 
+    <p id="avisoAlmacenamiento" role="alert"></p>
     <section class="panel">
       <h2>nueva tarea</h2>
       <form id="formTarea">
         <label for="descripcion">descripción</label>
-        <input id="descripcion" type="text" maxlength="80" required placeholder="ejemplo terminar informe">
+        <input id="descripcion" type="text" maxlength="80" aria-describedby="contadorTexto" required placeholder="ejemplo terminar informe">
 
         <label for="fechaLimite">fecha límite</label>
         <input id="fechaLimite" type="date" required>
 
+        <p id="errorFormulario" class="error" role="alert"></p>
         <div class="acciones-formulario">
           <button id="guardarTarea" type="submit">agregar tarea</button>
           <span id="contadorTexto">0 de 80</span>
@@ -48,6 +50,7 @@
           <option value="completada">completadas</option>
         </select>
       </div>
+      <p class="estado">JSONPlaceholder es una API de demostración: el POST simula crear una tarea. Tus tareas se guardan únicamente en localStorage de este navegador.</p>
       <p id="estadoApi" class="estado" role="status"></p>
       <div id="listaTareas" class="lista"></div>
     </section>
@@ -55,6 +58,32 @@
     <div id="notificacion" class="notificacion" role="status" aria-live="polite"></div>
   </main>
 
+  <dialog id="eliminarDialogo" aria-labelledby="tituloEliminar">
+    <h2 id="tituloEliminar">¿Eliminar esta tarea?</h2>
+    <p>Esta acción quitará la tarea de este navegador.</p>
+    <p id="errorEliminar" class="error" role="alert"></p>
+    <div class="botones">
+      <button id="cancelarEliminar" type="button" class="secundario" autofocus>Cancelar</button>
+      <button id="confirmarEliminar" type="button" class="peligro">Eliminar tarea</button>
+    </div>
+  </dialog>
+  <dialog id="editarDialogo" aria-labelledby="tituloEdicion">
+    <h2 id="tituloEdicion">Editar tarea</h2>
+    <form id="formEditar">
+      <label for="editarDescripcion">Descripción</label>
+      <input id="editarDescripcion" maxlength="80" required aria-describedby="contadorEdicion" autofocus>
+      <span id="contadorEdicion">0 de 80</span>
+      <label for="editarFecha">Fecha límite</label>
+      <input id="editarFecha" type="date" required>
+      <p id="errorEdicion" class="error" role="alert"></p>
+      <div class="botones">
+        <button type="submit">Guardar cambios</button>
+        <button id="cancelarEdicion" type="button" class="secundario">Cancelar</button>
+      </div>
+    </form>
+  </dialog>
+  <script src="modelos.js"></script>
+  <script src="api.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

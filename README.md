@@ -6,7 +6,9 @@ Proyecto nacido en la evaluación del Módulo 4 del bootcamp Full Stack JavaScri
 
 ## Demo y capturas
 
-- Demo de GitHub Pages: pendiente de publicación.
+**[Ver demo](https://orijimenezv.github.io/taskflow-js/)**
+
+Demo pública verificada por Orielle Jiménez en GitHub Pages: apertura de la página, creación y edición de una tarea, completar y reabrir. Consulta el alcance de estas comprobaciones en [resultados de pruebas](tests/RESULTADOS.md).
 - Capturas reales: pendientes de incorporar en `capturas/`. No se incluyen imágenes ficticias.
 
 ## Objetivo

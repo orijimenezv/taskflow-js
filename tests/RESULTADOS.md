@@ -62,7 +62,7 @@ La confirmación original mediante window.confirm bloqueó el control del navega
 - La prueba móvil utilizó emulación de viewport, no un teléfono físico.
 - No se ejecutó una auditoría con lector de pantalla, una matriz Firefox/Safari ni pruebas exhaustivas de contraste.
 - El escenario sin API comparte el almacenamiento del origen local; usar datos de prueba. No ejecutarlo simultáneamente con ediciones en otras pestañas.
-- No se generaron capturas permanentes para el portafolio ni se publicó la demo. El README mantiene esos espacios como pendientes.
+- Durante la revisión local original no se generaron capturas permanentes ni se publicó la demo. La publicación y las comprobaciones posteriores de la autora se registran en la sección de GitHub Pages. Las capturas siguen pendientes.
 - El PDF académico no fue regenerado; conserva el documento original.
 
 ## Repetición manual del fallo de API
@@ -72,3 +72,16 @@ Servir el proyecto y abrir `tests/sin-api.html`. Crear una tarea de prueba con f
 ## Verificación de cierre
 
 11 de septiembre de 2026: se repitió la suite completa, con 16 pruebas aprobadas y 0 fallidas. La revisión interactiva descrita arriba corresponde al 10 de septiembre.
+
+## Verificación de la demo en GitHub Pages por la autora
+
+Demo: [Ver demo](https://orijimenezv.github.io/taskflow-js/).
+
+Orielle Jiménez confirmó haber verificado estos recorridos en la demo pública:
+
+- Abrir la página.
+- Crear una tarea.
+- Editar una tarea.
+- Completar y reabrir una tarea.
+
+Este registro recoge únicamente las comprobaciones comunicadas por la autora. No se atribuyen a esta revisión pública pruebas de eliminación, filtros, persistencia tras recarga, importación desde la API, uso sin conexión, teclado ni responsive. Las pruebas locales anteriores se conservan por separado.
